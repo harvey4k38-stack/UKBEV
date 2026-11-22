@@ -25,6 +25,8 @@ export interface DatabaseState {
   orders: Order[];
   subscriptions: Subscription[];
   marketing: MarketingConfig;
+  /** One-off data migrations already applied to this database. */
+  appliedMigrations?: string[];
 }
 
 // DATA_DIR lets hosting point the JSON store at a persistent volume (e.g. Railway volume at /data)
@@ -399,7 +401,7 @@ function createInitialState(): DatabaseState {
       capColor: '#D4D9DF',
       tintColor: '#E8F3F7',
       labelAccent: '#D15B78',
-      active: true,
+      active: false,
     },
     {
       id: 'prod-evian-500-pet',
@@ -550,7 +552,7 @@ function createInitialState(): DatabaseState {
       capColor: '#4F3D7A',
       tintColor: '#EAF2F5',
       labelAccent: '#4F3D7A',
-      active: true,
+      active: false,
     },
     {
       id: 'prod-highland-750-glass-sparkling',
@@ -575,7 +577,7 @@ function createInitialState(): DatabaseState {
       capColor: '#1F5C49',
       tintColor: '#C4E0D2',
       labelAccent: '#1F5C49',
-      active: true,
+      active: false,
     },
     {
       id: 'prod-highland-500-pet-sparkling',
@@ -676,7 +678,7 @@ function createInitialState(): DatabaseState {
       capColor: '#1E293B',
       tintColor: '#D6ECF8',
       labelAccent: '#1E3A5F',
-      active: true,
+      active: false,
     },
     {
       id: 'prod-tongariro-750-still',
@@ -1010,10 +1012,10 @@ function createInitialState(): DatabaseState {
     bannerText: 'Complimentary London & South East delivery on orders over £45 · Use WELCOME10 for 10% off your first case',
     bannerLink: '/shop',
     featuredProductIds: [
-      'prod-evian-750-glass',
+      'prod-evian-500-pet',
       'prod-fiji-500-pet',
       'prod-icelandic-500-still',
-      'prod-highland-750-glass-sparkling',
+      'prod-highland-500-pet-sparkling',
       'prod-tongariro-750-still',
     ],
     newsletterSubscribers: [],

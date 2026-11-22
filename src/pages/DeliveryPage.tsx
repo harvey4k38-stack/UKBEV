@@ -231,9 +231,9 @@ export function DeliveryPage() {
       {/* Delivery FAQs */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="rounded-xl border border-black/8 bg-white p-6 space-y-2">
-          <h3 className="text-sm font-semibold text-[#14181F]">How are glass cases packaged?</h3>
+          <h3 className="text-sm font-semibold text-[#14181F]">How are cases packaged?</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            All 750ml flint glass cases are shipped in reinforced double-walled cartons with internal bottle dividers to prevent transit breakage.
+            Every case arrives shrink-wrapped in recyclable plastic bottles, packed in sturdy outer cartons so nothing gets crushed in transit.
           </p>
         </div>
         <div className="rounded-xl border border-black/8 bg-white p-6 space-y-2">

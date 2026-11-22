@@ -155,7 +155,7 @@ export function StoryPage() {
             Built for Repeat Convenience
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
-            From 750ml flint glass table bottles to 24-pack rPET cases and flexible weekly or monthly subscriptions, our service keeps your home effortlessly stocked.
+            From handy 12-packs of 500ml bottles to 24-pack rPET cases and flexible weekly or monthly subscriptions, our service keeps your home effortlessly stocked.
           </p>
         </div>
       </div>
@@ -448,7 +448,7 @@ export function LegalPage({ type }: { type: string }) {
         {type === 'returns' && (
           <>
             <p>
-              Under the UK Consumer Contracts Regulations 2013, you have 14 calendar days from receipt to return unopened, undamaged cases in original packaging. If glass or PET cases arrive damaged in transit, report within 48 hours with your order number for a prompt replacement or full GBP refund.
+              Under the UK Consumer Contracts Regulations 2013, you have 14 calendar days from receipt to return unopened, undamaged cases in original packaging. If cases arrive damaged in transit, report within 48 hours with your order number for a prompt replacement or full GBP refund.
             </p>
           </>
         )}

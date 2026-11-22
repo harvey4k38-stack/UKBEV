@@ -44,7 +44,7 @@ export function AdminPage() {
   const [newProdPrice, setNewProdPrice] = useState(25);
   const [newProdStock, setNewProdStock] = useState(40);
   const [newProdType, setNewProdType] = useState<'Still' | 'Sparkling'>('Still');
-  const [newProdPkg, setNewProdPkg] = useState<'Glass' | 'rPET'>('Glass');
+  const [newProdPkg, setNewProdPkg] = useState<'Glass' | 'rPET'>('rPET');
 
   // New Brand Form
   const [newBrandName, setNewBrandName] = useState('');
@@ -338,7 +338,7 @@ export function AdminPage() {
                     required
                     value={newProdName}
                     onChange={(e) => setNewProdName(e.target.value)}
-                    placeholder="e.g. Evian Sparkling – 750ml Glass"
+                    placeholder="e.g. Evian – 500ml 12-Pack"
                     className="w-full rounded-lg border border-black/15 px-3 py-2 text-xs"
                   />
                 </div>

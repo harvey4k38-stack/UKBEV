@@ -61,8 +61,8 @@ function scoreProduct(p: Product, occasion: Occasion, taste: Taste) {
   let score = 0;
   const brandRank = TASTE_BRANDS[taste].indexOf(p.brandId);
   if (brandRank >= 0) score += 6 - brandRank * 2;
-  if (occasion === 'go' && p.bottleSizeMl <= 500 && p.packaging !== 'Glass') score += 5;
-  if (occasion === 'table' && p.packaging === 'Glass') score += 5;
+  if (occasion === 'go' && p.bottleSizeMl <= 500) score += 5;
+  if (occasion === 'table' && p.bottleSizeMl >= 700 && p.bottleSizeMl <= 1000) score += 5;
   if (occasion === 'home' && p.bottleSizeMl >= 1000) score += 5;
   if (p.isBestSeller) score += 1;
   if (p.stock <= 0) score -= 100;

@@ -366,6 +366,27 @@ async function startServer() {
     }
   }
 
+  // We only sell plastic bottles: retire the glass-bottle range once (admins can re-enable later).
+  {
+    const state = db.getState();
+    const applied = (state.appliedMigrations ||= []);
+    if (!applied.includes('retire-glass-v1')) {
+      let n = 0;
+      for (const p of state.products) {
+        if (p.packaging === 'Glass' && p.active) {
+          p.active = false;
+          n++;
+        }
+      }
+      state.marketing.featuredProductIds = state.marketing.featuredProductIds.filter(
+        (id) => state.products.find((p) => p.id === id)?.active
+      );
+      applied.push('retire-glass-v1');
+      db.save();
+      console.log(`[catalogue] retired ${n} glass product(s)`);
+    }
+  }
+
   // Real admin credentials come from the environment, never from the client bundle.
   {
     const admin = db.getState().users.find((u) => u.role === 'admin');
@@ -971,7 +992,7 @@ async function startServer() {
       subtitle: String(body.subtitle || 'Case of 12'),
       description: String(body.description || ''),
       waterType: body.waterType === 'Sparkling' ? 'Sparkling' : 'Still',
-      packaging: body.packaging || 'Glass',
+      packaging: body.packaging || 'rPET',
       bottleSizeMl: Number(body.bottleSizeMl || 750),
       bottleSizeLabel: String(body.bottleSizeLabel || '750ml'),
       packQuantity: Number(body.packQuantity || 12),
@@ -982,7 +1003,7 @@ async function startServer() {
       stock: Number(body.stock ?? 50),
       isBestSeller: Boolean(body.isBestSeller),
       isFeatured: Boolean(body.isFeatured),
-      bottleStyle: body.bottleStyle || 'evian_glass',
+      bottleStyle: body.bottleStyle || 'evian_pet',
       capColor: String(body.capColor || '#CBD5E1'),
       tintColor: String(body.tintColor || '#E5F2F8'),
       labelAccent: String(body.labelAccent || '#0F5C6E'),

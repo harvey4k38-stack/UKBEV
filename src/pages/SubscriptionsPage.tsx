@@ -10,7 +10,7 @@ export function SubscriptionsPage() {
   const { products, brands, addToCart, navigate, user } = useStore();
 
   const [selectedBrandId, setSelectedBrandId] = useState<string>('all');
-  const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || 'prod-evian-750-glass');
+  const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || 'prod-evian-500-pet');
   const [frequency, setFrequency] = useState<SubscriptionFrequency>('monthly');
   const [quantity, setQuantity] = useState<number>(1);
 
@@ -89,7 +89,7 @@ export function SubscriptionsPage() {
             <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-2">
               <Shield className="h-5 w-5 text-[#7CC4D8]" />
               <h2 className="text-sm font-semibold">Swap Freely</h2>
-              <p className="text-xs text-slate-400">Switch between still, sparkling, glass, or brands between deliveries.</p>
+              <p className="text-xs text-slate-400">Switch between still, sparkling, bottle sizes or brands between deliveries.</p>
             </div>
           </div>
         </div>

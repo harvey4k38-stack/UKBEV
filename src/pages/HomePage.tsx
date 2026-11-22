@@ -184,7 +184,7 @@ export function HomePage() {
                 UK Consumer Retail
               </p>
               <h2 className="mt-2 font-editorial text-3xl sm:text-4xl font-semibold text-[#14181F]">
-                Featured Cases &amp; Table Glass
+                Featured Cases &amp; Multipacks
               </h2>
             </div>
             <button

@@ -9,7 +9,6 @@ type CollectionTab =
   | 'still'
   | 'sparkling'
   | 'premium'
-  | 'glass'
   | 'plastic'
   | 'bulk'
   | 'bestsellers';
@@ -41,11 +40,10 @@ export function ShopPage() {
     const list = products.filter((p) => {
       if (collectionTab === 'still' && p.waterType !== 'Still') return false;
       if (collectionTab === 'sparkling' && p.waterType !== 'Sparkling') return false;
-      if (collectionTab === 'glass' && p.packaging !== 'Glass') return false;
       if (collectionTab === 'plastic' && !['PET', 'rPET'].includes(p.packaging)) return false;
       if (collectionTab === 'bulk' && p.packQuantity < 12 && p.bottleSizeMl < 1500) return false;
       if (collectionTab === 'bestsellers' && !p.isBestSeller) return false;
-      if (collectionTab === 'premium' && !p.isFeatured && p.packaging !== 'Glass') return false;
+      if (collectionTab === 'premium' && !p.isFeatured) return false;
 
       if (brandFilter !== 'all' && p.brandId !== brandFilter) return false;
       if (sizeFilter !== 'all' && p.bottleSizeLabel !== sizeFilter) return false;
@@ -93,7 +91,6 @@ export function ShopPage() {
     { id: 'still', label: 'Still Water' },
     { id: 'sparkling', label: 'Sparkling Water' },
     { id: 'premium', label: 'Premium Water' },
-    { id: 'glass', label: 'Glass Bottles' },
     { id: 'plastic', label: 'Plastic Bottles' },
     { id: 'bulk', label: 'Bulk Packs' },
     { id: 'bestsellers', label: 'Best Sellers' },
@@ -125,7 +122,7 @@ export function ShopPage() {
             Shop All Bottled Water
           </h1>
           <p className="text-sm text-slate-600 max-w-md">
-            Cases and table glass packs sourced directly for UK home delivery. All prices include 20% UK VAT.
+            Cases and multipacks of bottled water sourced directly for UK home delivery. All prices include 20% UK VAT.
           </p>
         </div>
 
@@ -174,7 +171,7 @@ export function ShopPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="e.g. Evian glass, pH 8.4, 750ml"
+              placeholder="e.g. Evian 500ml, pH 8.4, FIJI"
               className="w-full rounded-lg border border-black/12 bg-white pl-9 pr-3 py-2 text-xs text-[#14181F] focus:border-[#0F5C6E] focus:outline-none"
             />
           </div>
