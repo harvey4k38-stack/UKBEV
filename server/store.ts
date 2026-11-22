@@ -1030,7 +1030,7 @@ function createInitialState(): DatabaseState {
 
   return {
     brands,
-    products: [...products, ...MULTIPACK_PRODUCTS],
+    products: [...products.map((p) => ({ ...p, imageUrl: PRODUCT_PHOTOS[p.id] ?? p.imageUrl })), ...MULTIPACK_PRODUCTS],
     deliveryZones,
     discountCodes,
     users,
@@ -1067,7 +1067,7 @@ const MULTIPACK_SPECS: MultipackSpec[] = [
   { brandId: 'brand-tongariro', brandShort: 'Tongariro Natural Spring Water', slugBrand: 'tongariro', skuBrand: 'TON', priceGbp: 6.00, subscriptionDiscountPct: 10, packaging: 'PET', bottleStyle: 'tongariro_pure', capColor: '#1E4FA0', tintColor: '#E5EFF2', labelAccent: '#1E4FA0', image: '/images/products/tongariro-12x500ml.webp', description: 'Silica-rich volcanic spring water from 738m in New Zealand’s Tongariro region, in convenient 500ml bottles, 12 to a pack.' },
 ];
 
-export const MULTIPACK_PRODUCTS: Product[] = MULTIPACK_SPECS.map((m) => ({
+const TWELVE_PACKS: Product[] = MULTIPACK_SPECS.map((m) => ({
   id: `prod-${m.slugBrand}-500-12pk`,
   slug: `${m.slugBrand}-500ml-still-12-pack`,
   brandId: m.brandId,
@@ -1092,6 +1092,63 @@ export const MULTIPACK_PRODUCTS: Product[] = MULTIPACK_SPECS.map((m) => ({
   imageUrl: m.image,
   active: true,
 }));
+
+const specFor = (slugBrand: string) => MULTIPACK_SPECS.find((m) => m.slugBrand === slugBrand)!;
+
+// 12-bottle cases in 750ml and 1.5L, photographed as single bottles (public/images/products/single).
+// PRICES ARE SUGGESTED within the £5–£8 case range and STOCK IS A PLACEHOLDER: confirm before launch.
+const SIZE_CASES: { slugBrand: string; sizeMl: number; priceGbp: number; blurb: string }[] = [
+  { slugBrand: 'evian', sizeMl: 750, priceGbp: 6.5, blurb: 'Evian in the 750ml sports-friendly bottle, 12 to a case. Natural mineral water from the French Alps.' },
+  { slugBrand: 'fiji', sizeMl: 750, priceGbp: 7.5, blurb: 'FIJI’s square 750ml bottle, 12 to a case. Soft, silica-rich artesian water from Viti Levu.' },
+  { slugBrand: 'highland-spring', sizeMl: 750, priceGbp: 6.0, blurb: 'Still Highland Spring in 750ml bottles, 12 to a case, from the Ochil Hills of Perthshire.' },
+  { slugBrand: 'icelandic-glacial', sizeMl: 750, priceGbp: 7.0, blurb: 'Naturally alkaline Icelandic Glacial in 750ml bottles, 12 to a case, from the Ölfus Spring.' },
+  { slugBrand: 'fiji', sizeMl: 1500, priceGbp: 8.0, blurb: 'FIJI in the family-size 1.5 litre bottle, 12 to a case. Smooth artesian water for the whole household.' },
+  { slugBrand: 'highland-spring', sizeMl: 1500, priceGbp: 7.0, blurb: 'Highland Spring still water in 1.5 litre bottles, 12 to a case: great value for the fridge door.' },
+  { slugBrand: 'icelandic-glacial', sizeMl: 1500, priceGbp: 8.0, blurb: 'Icelandic Glacial in 1.5 litre bottles, 12 to a case. Naturally alkaline at pH 8.4.' },
+];
+
+const SIZED_CASES: Product[] = SIZE_CASES.map(({ slugBrand, sizeMl, priceGbp, blurb }) => {
+  const m = specFor(slugBrand);
+  const label = sizeMl >= 1000 ? `${sizeMl / 1000}L` : `${sizeMl}ml`;
+  const nice = sizeMl >= 1000 ? `${sizeMl / 1000} Litre` : `${sizeMl}ml`;
+  return {
+    id: `prod-${slugBrand}-${sizeMl}-12pk`,
+    slug: `${slugBrand}-${sizeMl >= 1000 ? `${sizeMl / 1000}l` : `${sizeMl}ml`}-still-12-pack`.replace('.', '-'),
+    brandId: m.brandId,
+    name: `${m.brandShort} – ${nice} 12-Pack`,
+    subtitle: `Case of 12 · ${label} Still Bottles`,
+    description: blurb,
+    waterType: 'Still',
+    packaging: m.packaging,
+    bottleSizeMl: sizeMl,
+    bottleSizeLabel: label,
+    packQuantity: 12,
+    priceGbp,
+    subscriptionDiscountPct: m.subscriptionDiscountPct,
+    sku: `UKB-${m.skuBrand}-${sizeMl}-12`,
+    stock: 50,
+    isBestSeller: false,
+    isFeatured: false,
+    bottleStyle: m.bottleStyle,
+    capColor: m.capColor,
+    tintColor: m.tintColor,
+    labelAccent: m.labelAccent,
+    imageUrl: `/images/products/single/${slugBrand}-${sizeMl}ml.webp`,
+    active: true,
+  };
+});
+
+/** All catalogue additions since the original seed; server.ts adds any missing ones on startup. */
+export const MULTIPACK_PRODUCTS: Product[] = [...TWELVE_PACKS, ...SIZED_CASES];
+
+/** Single-bottle photos for products that existed before we had photography. */
+export const PRODUCT_PHOTOS: Record<string, string> = {
+  'prod-evian-500-pet': '/images/products/single/evian-500ml-bottle.webp',
+  'prod-fiji-500-pet': '/images/products/single/fiji-500ml-bottle.webp',
+  'prod-icelandic-500-still': '/images/products/single/icelandic-glacial-500ml-bottle.webp',
+  'prod-tongariro-750-still': '/images/products/single/tongariro-750ml.webp',
+  'prod-tongariro-1500-still': '/images/products/single/tongariro-1500ml.webp',
+};
 
 class StoreRepository {
   private state: DatabaseState;

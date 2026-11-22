@@ -16,7 +16,7 @@ export function ProductImage({
 }) {
   if (product.imageUrl) {
     return (
-      <div className={`bg-white flex items-center justify-center overflow-hidden ${className}`}>
+      <div className={`relative bg-white flex items-center justify-center overflow-hidden ${className}`}>
         <img
           src={product.imageUrl}
           alt={`${product.name}, ${product.packQuantity} × ${product.bottleSizeLabel}`}
@@ -26,6 +26,12 @@ export function ProductImage({
           decoding="async"
           className="h-full w-full object-contain"
         />
+        {/* Single-bottle photos: make it clear the price is for a case */}
+        {product.imageUrl.includes('/single/') && product.packQuantity > 1 && (
+          <span className="absolute bottom-1.5 left-1.5 rounded-full bg-[#14181F]/85 px-2 py-0.5 text-[10px] font-semibold text-white">
+            Case of {product.packQuantity}
+          </span>
+        )}
       </div>
     );
   }

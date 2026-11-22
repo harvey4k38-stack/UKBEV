@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import Stripe from 'stripe';
 import { createServer as createViteServer } from 'vite';
-import { MULTIPACK_PRODUCTS, db, hashPassword, verifyPassword, type StoredUser } from './server/store.ts';
+import { MULTIPACK_PRODUCTS, PRODUCT_PHOTOS, db, hashPassword, verifyPassword, type StoredUser } from './server/store.ts';
 import type {
   CartItemInput,
   DeliveryZone,
@@ -384,6 +384,22 @@ async function startServer() {
       applied.push('retire-glass-v1');
       db.save();
       console.log(`[catalogue] retired ${n} glass product(s)`);
+    }
+  }
+
+  // Attach product photography to older listings (only where no photo has been set).
+  {
+    const state = db.getState();
+    let n = 0;
+    for (const p of state.products) {
+      if (!p.imageUrl && PRODUCT_PHOTOS[p.id]) {
+        p.imageUrl = PRODUCT_PHOTOS[p.id];
+        n++;
+      }
+    }
+    if (n) {
+      db.save();
+      console.log(`[catalogue] added photos to ${n} product(s)`);
     }
   }
 
