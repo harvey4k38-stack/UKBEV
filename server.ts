@@ -387,6 +387,26 @@ async function startServer() {
     }
   }
 
+  // One-off repricing to real UK case prices (£5–£8). Later admin edits are kept.
+  {
+    const state = db.getState();
+    const applied = (state.appliedMigrations ||= []);
+    if (!applied.includes('reprice-2026-11')) {
+      const prices: Record<string, number> = JSON.parse(
+        fs.readFileSync(path.resolve(process.cwd(), 'server/prices.json'), 'utf8')
+      );
+      for (const p of state.products) {
+        if (prices[p.id] != null) {
+          p.priceGbp = prices[p.id];
+          delete p.compareAtPriceGbp;
+        }
+      }
+      applied.push('reprice-2026-11');
+      db.save();
+      console.log('[catalogue] applied 2026-11 prices');
+    }
+  }
+
   // Real admin credentials come from the environment, never from the client bundle.
   {
     const admin = db.getState().users.find((u) => u.role === 'admin');
