@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    background-color: #F8F7F4;
+    color: #14181F;
+  }
+
+  h1, h2, .font-editorial {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Source Journey (brand origin pages) */
+.journey-caption {
+  animation: journey-in 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes journey-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.journey-progress {
+  animation-name: journey-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+@keyframes journey-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.aq-rain {
+  animation: aq-rain 0.9s linear infinite;
+}
+@keyframes aq-rain {
+  from { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateY(70px); opacity: 0; }
+}
+.aq-flow {
+  animation: aq-flow 1.2s linear infinite;
+}
+@keyframes aq-flow {
+  to { stroke-dashoffset: -40; }
+}
+.aq-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: aq-pulse 2s ease-out infinite;
+}
+@keyframes aq-pulse {
+  from { transform: scale(0.6); opacity: 0.6; }
+  to { transform: scale(2.4); opacity: 0; }
+}
+
+/* iOS zooms the page when focusing inputs smaller than 16px; keep form fields at 16px on phones */
+@media (max-width: 640px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

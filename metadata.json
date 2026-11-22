@@ -1,0 +1,6 @@
+{
+  "name": "UK Beverages – Premium Bottled Water Delivery",
+  "description": "Discover and order the world's finest natural mineral and spring waters—Evian, FIJI Water, Highland Spring, Icelandic Glacial, and Tongariro—with convenient UK delivery and subscriptions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
