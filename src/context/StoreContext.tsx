@@ -1,3 +1,4 @@
+import { FREQ_DAYS } from '../lib/subscription';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type {
   Brand,
@@ -286,6 +287,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           item.id === entryId
             ? {
                 ...item,
+                // Changing how often keeps the same amount of water: weekly → monthly ≈ 4× the cases per drop.
+                quantity:
+                  purchaseMode === 'subscribe' && item.purchaseMode === 'subscribe' && item.frequency && item.frequency !== frequency
+                    ? Math.min(99, Math.max(1, Math.round((item.quantity * FREQ_DAYS[frequency]) / FREQ_DAYS[item.frequency])))
+                    : item.quantity,
                 purchaseMode,
                 frequency: purchaseMode === 'subscribe' ? frequency : undefined,
               }

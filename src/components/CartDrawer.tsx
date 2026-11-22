@@ -3,6 +3,7 @@ import { ProductImage } from './ProductImage';
 import { Minus, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import type { SubscriptionFrequency } from '../types';
+import { perMonth } from '../lib/subscription';
 
 export function CartDrawer() {
   const {
@@ -180,8 +181,16 @@ export function CartDrawer() {
                           <Plus className="h-3 w-3" />
                         </button>
                       </div>
-                      <span className="text-sm font-semibold font-mono tabular-nums">
-                        £{(unitPrice * entry.quantity).toFixed(2)}
+                      <span className="text-right">
+                        <span className="block text-sm font-semibold font-mono tabular-nums">
+                          £{(unitPrice * entry.quantity).toFixed(2)}
+                          {isSub && <span className="text-[10px] font-normal text-slate-500"> /delivery</span>}
+                        </span>
+                        {isSub && (
+                          <span className="block text-[11px] text-[#0F5C6E] font-medium">
+                            ≈ £{perMonth(unitPrice * entry.quantity, entry.frequency || 'monthly').toFixed(2)} a month
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>

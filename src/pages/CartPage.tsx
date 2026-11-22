@@ -4,6 +4,7 @@ import { Minus, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { SeoHead } from '../components/SeoHead';
 import { useStore } from '../context/StoreContext';
 import type { SubscriptionFrequency } from '../types';
+import { perMonth } from '../lib/subscription';
 
 export function CartPage() {
   const {
@@ -148,6 +149,11 @@ export function CartPage() {
                             <option value="fortnightly">Fortnightly</option>
                             <option value="monthly">Monthly</option>
                           </select>
+                        )}
+                        {isSub && (
+                          <span className="text-xs font-medium text-[#0F5C6E]">
+                            ≈ £{perMonth(unitPrice * entry.quantity, entry.frequency || 'monthly').toFixed(2)} a month
+                          </span>
                         )}
                       </div>
 

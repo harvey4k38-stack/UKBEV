@@ -210,12 +210,12 @@ export function HomePage() {
       {/* Section 4: Subscriptions & Live UK Postcode Checker */}
       <section className="mx-auto max-w-7xl px-4 sm:px-8 py-14 sm:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-12">
             <HydrationPlanner />
           </div>
 
-          <div className="lg:col-span-5 rounded-2xl border border-black/8 bg-[#14181F] text-white p-6 sm:p-10 flex flex-col justify-between">
-            <div className="space-y-4">
+          <div className="lg:col-span-12 rounded-2xl border border-black/8 bg-[#14181F] text-white p-6 sm:p-10 flex flex-col justify-between">
+            <div className="space-y-4 max-w-2xl">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#7CC4D8]">
                 <MapPin className="h-3.5 w-3.5" />
                 <span>UK Delivery Coverage</span>
