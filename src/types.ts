@@ -54,6 +54,8 @@ export interface Brand {
   heroImage: string;
   scenePreset: ScenePreset;
   accentHex: string;
+  /** false until mineral/source figures are confirmed against the supplier's label analysis */
+  factsVerified?: boolean;
   markers: BrandMarker[];
   active: boolean;
 }

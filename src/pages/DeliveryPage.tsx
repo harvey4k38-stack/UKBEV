@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapPin, PackageCheck, Search, Truck } from 'lucide-react';
 import { SeoHead } from '../components/SeoHead';
 import { useStore } from '../context/StoreContext';
+import { SoleDistributorBadge } from '../components/Flagship';
 import type { Order } from '../types';
 
 export function DeliveryPage() {
@@ -47,8 +48,36 @@ export function DeliveryPage() {
         description="Check UK bottled water delivery availability, shipping fees, free delivery thresholds, and track your UK Beverages order by postcode."
       />
 
+      {/* Tongariro availability */}
+      <section className="overflow-hidden rounded-2xl bg-[#121518] text-white grid grid-cols-1 md:grid-cols-5">
+        <div className="md:col-span-3 p-6 sm:p-10 space-y-4">
+          <SoleDistributorBadge />
+          <h2 className="font-editorial text-3xl sm:text-4xl font-semibold leading-[1.05]">
+            Tongariro from New Zealand, delivered across the UK.
+          </h2>
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            As the sole UK distributor, we hold Tongariro in UK stock and ship it with the rest of our range to every delivery zone
+            listed on this page. Order a single case, or set up a repeat delivery weekly, fortnightly or monthly.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <button onClick={() => navigate('/tongariro#collection')} className="rounded-lg bg-white px-5 py-3 text-xs font-semibold text-[#121518] hover:bg-slate-200">
+              SHOP TONGARIRO
+            </button>
+            <a href="#postcode-check" className="rounded-lg border border-white/25 px-5 py-3 text-xs font-semibold hover:bg-white/10">
+              CHECK MY POSTCODE
+            </a>
+          </div>
+        </div>
+        <img
+          src="/src/assets/images/brand_tongariro_nz_1795175837007-768.webp"
+          alt="Volcanic landscape in New Zealand's Tongariro region"
+          loading="lazy"
+          className="md:col-span-2 h-48 md:h-full w-full object-cover"
+        />
+      </section>
+
       {/* Header & Postcode Validator */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start border-b border-black/8 pb-14">
+      <section id="postcode-check" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start border-b border-black/8 pb-14">
         <div className="lg:col-span-6 space-y-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-[#0F5C6E]">
             United Kingdom Logistics

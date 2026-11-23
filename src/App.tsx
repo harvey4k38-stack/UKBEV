@@ -27,6 +27,9 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage').then((m) => ({ de
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const AccountPage = lazy(() => import('./pages/AccountPage').then((m) => ({ default: m.AccountPage })));
 
+const TongariroPage = lazy(() => import('./pages/TongariroPage').then((m) => ({ default: m.TongariroPage })));
+const OtherBrandsPage = lazy(() => import('./pages/TongariroPage').then((m) => ({ default: m.OtherBrandsPage })));
+
 function AppRouter() {
   const { currentPath, loadingStorefront } = useStore();
   const path = currentPath.replace(/\/+$/, '') || '/';
@@ -45,6 +48,10 @@ function AppRouter() {
     view = <HomePage />;
   } else if (path === '/shop') {
     view = <ShopPage />;
+  } else if (path === '/tongariro' || path === '/brands/tongariro') {
+    view = <TongariroPage />;
+  } else if (path === '/brands') {
+    view = <OtherBrandsPage />;
   } else if (path.startsWith('/brands/')) {
     const slug = path.slice('/brands/'.length);
     view = <BrandPage slug={slug} />;

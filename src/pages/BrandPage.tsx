@@ -6,6 +6,7 @@ import { SeoHead } from '../components/SeoHead';
 import { useStore } from '../context/StoreContext';
 import { SourceJourney } from '../components/SourceJourney';
 import { responsiveImg } from '../lib/img';
+import { factsVerified } from '../lib/flagship';
 
 export function BrandPage({ slug }: { slug: string }) {
   const { brands, products, navigate } = useStore();
@@ -39,7 +40,7 @@ export function BrandPage({ slug }: { slug: string }) {
     { label: 'Potassium (K⁺)', val: brand.mineralProfile.potassium, unit: 'mg/L' },
     { label: 'Sulphate (SO₄²⁻)', val: brand.mineralProfile.sulphate, unit: 'mg/L' },
     { label: 'Chloride (Cl⁻)', val: brand.mineralProfile.chloride, unit: 'mg/L' },
-  ].filter((m) => m.val !== undefined);
+  ].filter((m) => m.val !== undefined && factsVerified(brand));
 
   return (
     <div>
@@ -219,6 +220,20 @@ export function BrandPage({ slug }: { slug: string }) {
             <ProductCard key={product.id} product={product} brand={brand} />
           ))}
         </div>
+      </section>
+
+      {/* Cross-link to the flagship */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-8 pb-14">
+        <button
+          onClick={() => navigate('/tongariro')}
+          className="flex w-full flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-[#121518] px-6 py-5 text-left text-white"
+        >
+          <span>
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#A9BE95]">Our flagship · Sole UK distributor</span>
+            <span className="block font-editorial text-2xl font-semibold">Discover Tongariro Natural Spring Water from New Zealand</span>
+          </span>
+          <span className="text-xs font-semibold text-[#C9D6C0] whitespace-nowrap">Explore Tongariro →</span>
+        </button>
       </section>
     </div>
   );

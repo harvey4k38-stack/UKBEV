@@ -3,6 +3,8 @@ import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { SeoHead } from '../components/SeoHead';
 import { useStore } from '../context/StoreContext';
+import { SoleDistributorBadge, TongariroCollection } from '../components/Flagship';
+import { fact, isFlagship } from '../lib/flagship';
 
 type CollectionTab =
   | 'all'
@@ -20,7 +22,8 @@ export function ShopPage() {
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
   const [packFilter, setPackFilter] = useState<string>('all');
-  const [maxPrice, setMaxPrice] = useState<number>(60);
+  const PRICE_CAP = Math.max(10, Math.ceil(Math.max(0, ...products.map((p) => p.priceGbp))));
+  const [maxPrice, setMaxPrice] = useState<number>(PRICE_CAP);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'per-litre'>('featured');
@@ -66,8 +69,9 @@ export function ShopPage() {
         const bLitre = b.priceGbp / ((b.bottleSizeMl * b.packQuantity) / 1000);
         return aLitre - bLitre;
       }
-      // Default order: real product photography first, then featured lines
+      // Default order: Tongariro (flagship) first, then real product photography, then featured lines
       return (
+        Number(isFlagship(b)) - Number(isFlagship(a)) ||
         Number(Boolean(b.imageUrl)) - Number(Boolean(a.imageUrl)) ||
         Number(b.isFeatured) - Number(a.isFeatured)
       );
@@ -86,6 +90,10 @@ export function ShopPage() {
 
   const comparedProducts = products.filter((p) => compareIds.includes(p.id));
 
+  // While browsing (no search / brand filter), Tongariro gets its own flagship section above the grid.
+  const browsing = !searchQuery.trim() && brandFilter === 'all';
+  const gridProducts = browsing ? filteredProducts.filter((p) => !isFlagship(p)) : filteredProducts;
+
   const tabs: { id: CollectionTab; label: string }[] = [
     { id: 'all', label: 'All Water' },
     { id: 'still', label: 'Still Water' },
@@ -101,14 +109,14 @@ export function ShopPage() {
     setBrandFilter('all');
     setSizeFilter('all');
     setPackFilter('all');
-    setMaxPrice(60);
+    setMaxPrice(PRICE_CAP);
     setSearchQuery('');
   };
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-8 py-6 sm:py-12">
       <SeoHead
-        title="Shop All Bottled Water UK – Evian, FIJI, Highland Spring, Icelandic Glacial & Tongariro | UK Beverages"
+        title="Shop Tongariro Natural Spring Water & Premium Bottled Water UK | UK Beverages"
         description="Browse and buy Evian, FIJI Water, Highland Spring, Icelandic Glacial, and Tongariro Natural Spring Water cases with UK mainland delivery."
       />
 
@@ -263,14 +271,14 @@ export function ShopPage() {
             <span>Max Price:</span>
             <input
               type="range"
-              min={15}
-              max={60}
-              step={5}
+              min={4}
+              max={PRICE_CAP}
+              step={0.5}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
               className="accent-[#0F5C6E]"
             />
-            <span className="font-mono tabular-nums font-semibold">£{maxPrice}</span>
+            <span className="font-mono tabular-nums font-semibold">£{maxPrice.toFixed(2)}</span>
           </label>
         </div>
 
@@ -279,8 +287,36 @@ export function ShopPage() {
         </button>
       </div>
 
+      {/* Flagship: Tongariro */}
+      {browsing && collectionTab !== 'sparkling' && (
+        <section className="mt-6 sm:mt-8 overflow-hidden rounded-2xl bg-[#121518] text-white">
+          <div className="relative">
+            <img src="/src/assets/images/brand_tongariro_nz_1795175837007-1376.webp" srcSet="/src/assets/images/brand_tongariro_nz_1795175837007-768.webp 768w, /src/assets/images/brand_tongariro_nz_1795175837007-1376.webp 1376w" sizes="(min-width: 1280px) 1216px, 100vw" alt="Volcanic peaks in New Zealand's Tongariro region" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#121518]/90 via-[#121518]/50 to-transparent" />
+            <div className="relative flex min-h-[300px] sm:min-h-[300px] flex-col justify-end items-start gap-3 p-5 sm:p-8 max-w-xl">
+              <SoleDistributorBadge />
+              <h2 className="font-editorial text-3xl sm:text-5xl font-semibold leading-[1.02] uppercase">Tongariro: our flagship water</h2>
+              <p className="text-sm text-slate-200">New Zealand natural spring water, available in the UK only through UK Beverages.</p>
+              <button onClick={() => navigate('/tongariro')} className="rounded-lg bg-white px-5 py-2.5 text-xs font-semibold text-[#121518] hover:bg-slate-200">
+                SHOP TONGARIRO
+              </button>
+            </div>
+          </div>
+          <div className="p-4 sm:p-8 bg-[#F4F6F5] text-[#121518]">
+            <TongariroCollection />
+          </div>
+        </section>
+      )}
+
+      {browsing && (
+        <div id="more-waters" className="scroll-mt-24 pt-10 sm:pt-14 pb-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Evian · FIJI Water · Highland Spring · Icelandic Glacial</p>
+          <h2 className="mt-1 font-editorial text-2xl sm:text-3xl font-semibold text-[#14181F] uppercase tracking-wide">More exceptional waters</h2>
+        </div>
+      )}
+
       {/* Product Grid */}
-      {filteredProducts.length === 0 ? (
+      {gridProducts.length === 0 ? (
         <div className="my-12 rounded-2xl border border-black/8 bg-white p-12 text-center space-y-3">
           <p className="text-base font-semibold text-[#14181F]">No water packs match those filters.</p>
           <p className="text-sm text-slate-600">Try clearing one or more filters to view our full UK range.</p>
@@ -293,7 +329,7 @@ export function ShopPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 pt-2">
-          {filteredProducts.map((product) => (
+          {gridProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -389,7 +425,7 @@ export function ShopPage() {
                       const b = brands.find((br) => br.id === p.brandId);
                       return (
                         <td key={p.id} className="py-2.5 px-4">
-                          {b?.mineralProfile.ph}
+                          {fact(b, b?.mineralProfile.ph)}
                         </td>
                       );
                     })}
@@ -400,7 +436,7 @@ export function ShopPage() {
                       const b = brands.find((br) => br.id === p.brandId);
                       return (
                         <td key={p.id} className="py-2.5 px-4">
-                          {b?.mineralProfile.tds} mg/L
+                          {fact(b, b?.mineralProfile.tds, ' mg/L')}
                         </td>
                       );
                     })}
@@ -411,7 +447,7 @@ export function ShopPage() {
                       const b = brands.find((br) => br.id === p.brandId);
                       return (
                         <td key={p.id} className="py-2.5 px-4">
-                          SiO₂ {b?.mineralProfile.silica ?? '—'} · Ca {b?.mineralProfile.calcium ?? '—'} mg/L
+                          SiO₂ {fact(b, b?.mineralProfile.silica)} · Ca {fact(b, b?.mineralProfile.calcium, ' mg/L')}
                         </td>
                       );
                     })}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, CheckCircle2, Mail, MapPin, Phone } from 'lucide-react';
 import { SeoHead } from '../components/SeoHead';
 import { useStore } from '../context/StoreContext';
+import { brandPath, fact, isFlagship } from '../lib/flagship';
 
 export function OriginsPage() {
   const { brands, navigate } = useStore();
@@ -44,18 +45,21 @@ export function OriginsPage() {
             {brands.map((b) => (
               <tr key={b.id} className="hover:bg-black/[0.015]">
                 <td className="py-4 px-5 font-sans">
-                  <p className="font-semibold text-[#14181F]">{b.name}</p>
+                  <p className="font-semibold text-[#14181F]">
+                    {b.name}
+                    {isFlagship(b) && <span className="ml-2 align-middle rounded-full bg-[#121518] px-2 py-0.5 text-[10px] font-sans font-semibold uppercase tracking-wider text-white">Flagship</span>}
+                  </p>
                   <p className="text-xs text-slate-500">{b.sourceName}</p>
                 </td>
                 <td className="py-4 px-4 font-sans text-slate-700">{b.country}</td>
-                <td className="py-4 px-4 font-semibold text-[#0F5C6E]">{b.mineralProfile.ph}</td>
-                <td className="py-4 px-4">{b.mineralProfile.tds}</td>
-                <td className="py-4 px-4">{b.mineralProfile.silica ?? '—'}</td>
-                <td className="py-4 px-4">{b.mineralProfile.calcium ?? '—'}</td>
-                <td className="py-4 px-4">{b.mineralProfile.magnesium ?? '—'}</td>
+                <td className="py-4 px-4 font-semibold text-[#0F5C6E]">{fact(b, b.mineralProfile.ph)}</td>
+                <td className="py-4 px-4">{fact(b, b.mineralProfile.tds)}</td>
+                <td className="py-4 px-4">{fact(b, b.mineralProfile.silica)}</td>
+                <td className="py-4 px-4">{fact(b, b.mineralProfile.calcium)}</td>
+                <td className="py-4 px-4">{fact(b, b.mineralProfile.magnesium)}</td>
                 <td className="py-4 px-5 font-sans text-right">
                   <button
-                    onClick={() => navigate(`/brands/${b.slug}`)}
+                    onClick={() => navigate(brandPath(b))}
                     className="text-xs font-semibold text-[#0F5C6E] hover:underline whitespace-nowrap"
                   >
                     Explore source →
@@ -97,7 +101,7 @@ export function OriginsPage() {
               </div>
               <div className="pt-2">
                 <button
-                  onClick={() => navigate(`/brands/${b.slug}`)}
+                  onClick={() => navigate(brandPath(b))}
                   className="inline-flex items-center gap-2 rounded-lg bg-[#14181F] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#0F5C6E] transition-colors"
                 >
                   Discover where {b.name} comes from <ArrowRight className="h-3.5 w-3.5" />

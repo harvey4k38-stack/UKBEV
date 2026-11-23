@@ -4,6 +4,7 @@ import { ArrowLeft, Check, Minus, Plus, RefreshCw, ShieldCheck, Truck } from 'lu
 import { ProductCard } from '../components/ProductCard';
 import { SeoHead } from '../components/SeoHead';
 import { useStore } from '../context/StoreContext';
+import { fact, isFlagship } from '../lib/flagship';
 import { Bottle3DViewer } from '../three/lazy';
 import type { SubscriptionFrequency } from '../types';
 
@@ -43,10 +44,13 @@ export function ProductPage({ slug }: { slug: string }) {
   const sameBrandProducts = products.filter(
     (p) => p.brandId === product.brandId && p.id !== product.id
   );
-  const relatedProducts =
-    sameBrandProducts.length >= 2
-      ? sameBrandProducts.slice(0, 3)
-      : [...sameBrandProducts, ...products.filter((p) => p.brandId !== product.brandId)].slice(0, 3);
+  // Always suggest a Tongariro (flagship) case alongside other brands' products
+  const flagshipPick = isFlagship(product) ? [] : products.filter((p) => isFlagship(p) && p.active).slice(0, 1);
+  const relatedProducts = [
+    ...flagshipPick,
+    ...sameBrandProducts,
+    ...products.filter((p) => p.brandId !== product.brandId && !flagshipPick.includes(p)),
+  ].slice(0, 3);
 
   const handleBuyNow = () => {
     addToCart(product.id, quantity, purchaseMode, frequency);
@@ -216,13 +220,13 @@ export function ProductPage({ slug }: { slug: string }) {
             {brand && (
               <>
                 <div>
-                  <span className="text-slate-500 block">Verified pH</span>
-                  <span className="font-semibold font-mono text-[#14181F]">{brand.mineralProfile.ph}</span>
+                  <span className="text-slate-500 block">pH</span>
+                  <span className="font-semibold font-mono text-[#14181F]">{fact(brand, brand.mineralProfile.ph)}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 block">TDS (Dry Residue)</span>
                   <span className="font-semibold font-mono text-[#14181F]">
-                    {brand.mineralProfile.tds} mg/L
+                    {fact(brand, brand.mineralProfile.tds, ' mg/L')}
                   </span>
                 </div>
               </>

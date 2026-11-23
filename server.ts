@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import Stripe from 'stripe';
 import { createServer as createViteServer } from 'vite';
-import { MULTIPACK_PRODUCTS, PRODUCT_PHOTOS, db, hashPassword, verifyPassword, type StoredUser } from './server/store.ts';
+import { MULTIPACK_PRODUCTS, PRODUCT_PHOTOS, TONGARIRO_BRAND_PATCH, TONGARIRO_PRODUCT_COPY, db, hashPassword, verifyPassword, type StoredUser } from './server/store.ts';
 import type {
   CartItemInput,
   DeliveryZone,
@@ -415,6 +415,30 @@ async function startServer() {
       applied.push('retire-bib-v1');
       db.save();
       console.log('[catalogue] retired bag-in-box products');
+    }
+  }
+
+  // Tongariro becomes the flagship: verified-only copy, flagship products featured first. Runs once.
+  {
+    const state = db.getState();
+    const applied = (state.appliedMigrations ||= []);
+    if (!applied.includes('tongariro-flagship-v1')) {
+      const brand = state.brands.find((b) => b.id === 'brand-tongariro');
+      if (brand) Object.assign(brand, TONGARIRO_BRAND_PATCH);
+      for (const p of state.products) {
+        const copy = TONGARIRO_PRODUCT_COPY[p.id];
+        if (copy) Object.assign(p, copy);
+      }
+      const flagshipIds = state.products
+        .filter((p) => p.brandId === 'brand-tongariro' && p.active)
+        .map((p) => p.id);
+      state.marketing.featuredProductIds = [
+        ...flagshipIds,
+        ...state.marketing.featuredProductIds.filter((id) => !flagshipIds.includes(id)),
+      ];
+      applied.push('tongariro-flagship-v1');
+      db.save();
+      console.log('[catalogue] Tongariro flagship update applied');
     }
   }
 

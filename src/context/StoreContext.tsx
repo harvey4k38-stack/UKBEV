@@ -1,4 +1,5 @@
 import { FREQ_DAYS } from '../lib/subscription';
+import { flagshipFirst } from '../lib/flagship';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type {
   Brand,
@@ -123,13 +124,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navigate = useCallback((path: string) => {
-    if (path === window.location.pathname + window.location.search) {
-      scrollToTop(true);
+    const [pathAndQuery, hash] = path.split('#');
+    // Scroll to an in-page anchor once the target page has rendered (retries while lazy chunks load).
+    const scrollToHash = (tries = 0) => {
+      const el = hash ? document.getElementById(hash) : null;
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else if (tries < 20) window.setTimeout(() => scrollToHash(tries + 1), 80);
+    };
+    if (pathAndQuery === window.location.pathname + window.location.search) {
+      if (hash) {
+        window.history.replaceState({}, '', path);
+        scrollToHash();
+      } else scrollToTop(true);
       return;
     }
     window.history.pushState({}, '', path);
-    setCurrentPath(path.split('?')[0] || '/');
+    setCurrentPath(pathAndQuery.split('?')[0] || '/');
     scrollToTop(false);
+    if (hash) scrollToHash();
   }, []);
 
   const apiFetch = useCallback(
@@ -159,8 +171,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         deliveryZones: DeliveryZone[];
         marketing: StoreContextValue['marketing'];
       }>('/api/storefront');
-      setBrands(data.brands);
-      setProducts(data.products);
+      // Tongariro (flagship) leads every brand and product list; original order otherwise.
+      setBrands(flagshipFirst(data.brands));
+      setProducts(flagshipFirst(data.products));
       setDeliveryZones(data.deliveryZones);
       setMarketing(data.marketing);
     } finally {

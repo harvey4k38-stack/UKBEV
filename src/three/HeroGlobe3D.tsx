@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Globe, Satellite } from 'lucide-react';
 import { LazyGoogleEarthOriginMap as GoogleEarthOriginMap } from '../components/LazyGoogleEarthOriginMap';
 import type { Brand } from '../types';
+import { FLAGSHIP_BRAND_ID, fact } from '../lib/flagship';
 import {
   afterDrawSync,
   createEarthTextures,
@@ -20,6 +21,10 @@ interface HeroGlobe3DProps {
   selectedBrandId: string | null;
   onSelectBrand: (brand: Brand | null) => void;
   onExploreBrand: (slug: string) => void;
+  /** "Shop" action for a brand (flagship panel). */
+  onShopBrand?: (brand: Brand) => void;
+  /** Hide the bottom dock / chips (when embedded on a brand page). */
+  compact?: boolean;
 }
 
 const _targetCamPos = new THREE.Vector3();
@@ -70,11 +75,13 @@ export function HeroGlobe3D({
   selectedBrandId,
   onSelectBrand,
   onExploreBrand,
+  onShopBrand,
+  compact = false,
 }: HeroGlobe3DProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [webglReady, setWebglReady] = useState(true);
   const [hoveredBrandId, setHoveredBrandId] = useState<string | null>(null);
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(false); // start parked on New Zealand
   const [viewMode, setViewMode] = useState<'globe' | 'satellite'>('globe');
 
   const brandsRef = useRef(brands);
@@ -151,8 +158,14 @@ export function HeroGlobe3D({
       return Math.max(1, (2.35 / 0.84 / Math.sin(Math.min(halfV, halfH))) / BASE_DIST);
     };
     distScaleRef.current = distScaleFor(width, height);
-    // Start oriented toward UK / France / Iceland Atlantic hemisphere
-    const initFocus = latLngToVector3(46, -8, BASE_DIST * distScaleRef.current, new THREE.Vector3());
+    // Open on New Zealand and the Pacific: Tongariro is the flagship origin
+    const flagship = brandsRef.current.find((b) => b.id === FLAGSHIP_BRAND_ID);
+    const initFocus = latLngToVector3(
+      flagship ? flagship.coordinates.lat + 8 : -30,
+      flagship ? flagship.coordinates.lng - 6 : 170,
+      BASE_DIST * distScaleRef.current,
+      new THREE.Vector3()
+    );
     camera.position.copy(initFocus);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -342,6 +355,8 @@ export function HeroGlobe3D({
     const pinHeads: { mesh: THREE.Mesh; brandId: string }[] = [];
     const arcPulses: { curve: THREE.QuadraticBezierCurve3; bead: THREE.Mesh; phase: number }[] = [];
     const pulseBeadGeo = new THREE.SphereGeometry(0.024, 12, 12);
+    let flagHalo: THREE.Mesh | null = null;
+    let flagLabel: THREE.Sprite | null = null;
 
     const disposables: { dispose: () => void }[] = [
       globeGeo,
@@ -373,9 +388,13 @@ export function HeroGlobe3D({
       );
       const normalVec = pos.clone().normalize();
 
+      const isFlag = brand.id === FLAGSHIP_BRAND_ID;
       const pinGroup = new THREE.Group();
       pinGroup.position.copy(pos);
       pinGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normalVec);
+      // Flagship marker is much larger; secondary origins are understated
+      const pinScale = isFlag ? 1.85 : 0.72;
+      pinGroup.scale.setScalar(pinScale);
 
       const accent = new THREE.Color(brand.accentHex || '#38BDF8');
       const baseRingGeo = new THREE.RingGeometry(0.042, 0.072, 28);
@@ -414,12 +433,58 @@ export function HeroGlobe3D({
       const hitMat = new THREE.MeshBasicMaterial({ visible: false });
       const hitProxy = new THREE.Mesh(hitGeo, hitMat);
       hitProxy.position.y = 0.15;
+      hitProxy.scale.setScalar((isFlag ? 1.1 : 1.25) / pinScale); // keep small pins easy to tap
       hitProxy.layers.set(1);
       hitProxy.userData = { brand };
       hitTargets.push(hitProxy);
 
       pinGroup.add(baseRing, stem, head, hitProxy);
       globeGroup.add(pinGroup);
+
+      if (isFlag) {
+        // Pulsing halo on the surface
+        const haloGeoF = new THREE.RingGeometry(0.09, 0.105, 48);
+        const haloMatF = new THREE.MeshBasicMaterial({ color: 0xdce6d3, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false });
+        const halo = new THREE.Mesh(haloGeoF, haloMatF);
+        halo.rotation.x = -Math.PI / 2;
+        halo.position.y = 0.012;
+        pinGroup.add(halo);
+        flagHalo = halo;
+        // "TONGARIRO · FLAGSHIP" label sprite floating above the pin
+        const c = document.createElement('canvas');
+        c.width = 512;
+        c.height = 128;
+        const g = c.getContext('2d')!;
+        g.fillStyle = 'rgba(13,27,42,0.88)';
+        g.beginPath();
+        g.roundRect(4, 14, 504, 100, 50);
+        g.fill();
+        g.strokeStyle = 'rgba(220,230,211,0.65)';
+        g.lineWidth = 3;
+        g.stroke();
+        g.fillStyle = '#A9BE95';
+        g.beginPath();
+        g.arc(56, 64, 10, 0, Math.PI * 2);
+        g.fill();
+        g.fillStyle = '#F4F6F5';
+        g.font = '600 40px "Plus Jakarta Sans", system-ui, sans-serif';
+        g.textBaseline = 'middle';
+        g.fillText('TONGARIRO', 82, 52);
+        g.fillStyle = '#C9D6C0';
+        g.font = '600 24px "Plus Jakarta Sans", system-ui, sans-serif';
+        g.fillText('FLAGSHIP · NEW ZEALAND', 82, 88);
+        const tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 4;
+        const labelMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
+        const label = new THREE.Sprite(labelMat);
+        label.scale.set(0.84, 0.21, 1);
+        label.position.copy(normalVec).multiplyScalar(radius + 0.62);
+        label.center.set(0.5, 0);
+        globeGroup.add(label);
+        flagLabel = label;
+        disposables.push(haloGeoF, haloMatF, tex, labelMat);
+      }
       disposables.push(baseRingGeo, baseRingMat, stemGeo, stemMat, headGeo, headMat, hitGeo, hitMat);
 
       // Great-circle arc from spring origin to London UK
@@ -435,11 +500,11 @@ export function HeroGlobe3D({
         mid,
         _ukVec.clone()
       );
-      const arcGeo = new THREE.TubeGeometry(curve, 44, 0.006, 6, false);
+      const arcGeo = new THREE.TubeGeometry(curve, 44, isFlag ? 0.011 : 0.005, 6, false);
       const arcMat = new THREE.MeshBasicMaterial({
         color: accent,
         transparent: true,
-        opacity: 0.42,
+        opacity: isFlag ? 0.75 : 0.22,
       });
       const arcMesh = new THREE.Mesh(arcGeo, arcMat);
       globeGroup.add(arcMesh);
@@ -575,6 +640,15 @@ export function HeroGlobe3D({
         p.mesh.rotation.y += dt * 0.9;
       }
 
+      // The floating label is for the overview; hide it once a source is selected (the panel takes over)
+      if (flagLabel) flagLabel.visible = !selectedRef.current;
+
+      if (flagHalo && !prefersReduced) {
+        const k = (elapsed * 0.6) % 1;
+        flagHalo.scale.setScalar(1 + k * 1.6);
+        (flagHalo.material as THREE.MeshBasicMaterial).opacity = 0.75 * (1 - k);
+      }
+
       if (!prefersReduced) {
         for (const ap of arcPulses) {
           const t = (elapsed * 0.22 + ap.phase) % 1;
@@ -674,7 +748,11 @@ export function HeroGlobe3D({
             <div className="absolute inset-0 bg-gradient-to-t from-[#0B141E] via-transparent to-transparent" />
             <div className="absolute bottom-2.5 left-4 right-4 flex items-center justify-between text-xs text-slate-200">
               <span>{activeBrand.country}</span>
-              <span className="font-mono tabular-nums">pH {activeBrand.mineralProfile.ph}</span>
+              {activeBrand.id === FLAGSHIP_BRAND_ID ? (
+                <span className="font-semibold uppercase tracking-wider text-[10px] text-[#DCE6D3]">Sole UK distributor</span>
+              ) : (
+                <span className="font-mono tabular-nums">pH {fact(activeBrand, activeBrand.mineralProfile.ph)}</span>
+              )}
             </div>
           </div>
           <div className="p-4 space-y-2.5">
@@ -697,11 +775,23 @@ export function HeroGlobe3D({
               {activeBrand.tagline}
             </p>
             <div className="pt-1 flex items-center gap-2">
+              {activeBrand.id === FLAGSHIP_BRAND_ID && onShopBrand && (
+                <button
+                  onClick={() => onShopBrand(activeBrand)}
+                  className="flex-1 rounded-lg bg-white px-3.5 py-2 text-xs font-semibold text-[#0D1B2A] hover:bg-slate-200 transition-colors whitespace-nowrap"
+                >
+                  SHOP TONGARIRO
+                </button>
+              )}
               <button
                 onClick={() => onExploreBrand(activeBrand.slug)}
-                className="flex-1 rounded-lg bg-[#18759C] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#1E88B5] transition-colors whitespace-nowrap"
+                className={`flex-1 rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors whitespace-nowrap ${
+                  activeBrand.id === FLAGSHIP_BRAND_ID
+                    ? 'border border-white/25 text-white hover:bg-white/10'
+                    : 'bg-[#18759C] text-white hover:bg-[#1E88B5]'
+                }`}
               >
-                Explore Source
+                {activeBrand.id === FLAGSHIP_BRAND_ID ? 'Discover its origin' : 'Explore source'}
               </button>
             </div>
           </div>
@@ -722,18 +812,24 @@ export function HeroGlobe3D({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-white">{activeBrand.name}</p>
             <p className="truncate text-[11px] text-slate-400">
-              {activeBrand.country} · pH {activeBrand.mineralProfile.ph}
+              {activeBrand.id === FLAGSHIP_BRAND_ID
+                ? 'Flagship · Sole UK distributor'
+                : `${activeBrand.country} · pH ${fact(activeBrand, activeBrand.mineralProfile.ph)}`}
             </p>
           </div>
           <button
-            onClick={() => onExploreBrand(activeBrand.slug)}
-            className="shrink-0 rounded-lg bg-[#18759C] px-3 py-2 text-xs font-semibold text-white"
+            onClick={() =>
+              activeBrand.id === FLAGSHIP_BRAND_ID && onShopBrand ? onShopBrand(activeBrand) : onExploreBrand(activeBrand.slug)
+            }
+            className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold ${
+              activeBrand.id === FLAGSHIP_BRAND_ID ? 'bg-white text-[#0D1B2A]' : 'bg-[#18759C] text-white'
+            }`}
           >
-            Explore
+            {activeBrand.id === FLAGSHIP_BRAND_ID ? 'Shop' : 'Explore'}
           </button>
         </div>
       )}
-      <div className="md:hidden absolute bottom-3 left-0 right-0 z-20">
+      <div className={`${compact ? 'hidden' : 'md:hidden'} absolute bottom-3 left-0 right-0 z-20`}>
         <div className="flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {brands.map((brand) => {
             const active = selectedBrandId === brand.id;
@@ -741,12 +837,15 @@ export function HeroGlobe3D({
               <button
                 key={brand.id}
                 onClick={() => onSelectBrand(active ? null : brand)}
-                className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`shrink-0 rounded-full border px-3.5 py-2 text-xs whitespace-nowrap transition-colors ${
                   active
-                    ? 'border-[#18759C] bg-[#18759C] text-white'
-                    : 'border-white/15 bg-[#0A121C]/85 text-slate-200'
+                    ? 'border-[#18759C] bg-[#18759C] text-white font-medium'
+                    : brand.id === FLAGSHIP_BRAND_ID
+                    ? 'border-[#DCE6D3]/60 bg-[#0D1B2A]/90 text-white font-semibold'
+                    : 'border-white/15 bg-[#0A121C]/85 text-slate-300 font-medium'
                 }`}
               >
+                {brand.id === FLAGSHIP_BRAND_ID && <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#A9BE95] align-middle" />}
                 {brand.name.replace(' Natural Spring Water', '').replace(' Water', '')}
               </button>
             );
@@ -756,7 +855,7 @@ export function HeroGlobe3D({
 
       {/* Sleek Bottom Source Selector & Earth Mode Dock (<= 15% viewport, solid rgba surface) */}
       <div
-        className="hidden md:flex absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex-wrap items-center justify-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 shadow-xl max-w-[95vw]"
+        className={`hidden ${compact ? '' : 'md:flex'} absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex-wrap items-center justify-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 shadow-xl max-w-[95vw]`}
         style={{ backgroundColor: 'rgba(10, 18, 28, 0.92)' }}
       >
         <div className="flex items-center rounded-lg bg-white/10 p-0.5 mr-1">
@@ -794,12 +893,15 @@ export function HeroGlobe3D({
             <button
               key={brand.id}
               onClick={() => onSelectBrand(active ? null : brand)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap shrink-0 ${
                 active
-                  ? 'bg-[#18759C] text-white'
-                  : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                  ? 'bg-[#18759C] text-white font-medium'
+                  : brand.id === FLAGSHIP_BRAND_ID
+                  ? 'border border-[#DCE6D3]/50 text-white font-semibold hover:bg-white/10'
+                  : 'text-slate-400 font-medium hover:bg-white/10 hover:text-white'
               }`}
             >
+              {brand.id === FLAGSHIP_BRAND_ID && <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#A9BE95] align-middle" />}
               {brand.name.replace(' Natural Spring Water', '').replace(' Water', '')} ·{' '}
               {brand.country.replace(', UK', '')}
             </button>
@@ -813,7 +915,7 @@ export function HeroGlobe3D({
               onClick={() => setAutoRotate((r) => !r)}
               className="px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap shrink-0"
             >
-              {autoRotate ? 'Pause Orbit' : 'Resume Orbit'}
+              {autoRotate ? 'Pause orbit' : 'Start orbit'}
             </button>
           </>
         )}

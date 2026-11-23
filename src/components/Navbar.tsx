@@ -19,7 +19,9 @@ export function Navbar() {
   const showBanner = !isHome && marketing?.bannerEnabled && !bannerDismissed;
 
   const navItems = [
-    { label: 'Shop', path: '/shop' },
+    { label: 'Tongariro', path: '/tongariro', flagship: true },
+    { label: 'Shop All Water', path: '/shop' },
+    { label: 'Other Brands', path: '/brands' },
     { label: 'Origins', path: '/origins' },
     { label: 'Subscriptions', path: '/subscriptions' },
     { label: 'Delivery', path: '/delivery' },
@@ -69,11 +71,28 @@ export function Navbar() {
           </button>
 
           {/* Zone 2: 5 concise single-line nav links */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium" aria-label="Primary">
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-7 text-sm font-medium" aria-label="Primary">
             {navItems.map((item) => {
               const active =
                 currentPath === item.path ||
-                (item.path === '/origins' && currentPath.startsWith('/brands/'));
+                (item.path === '/tongariro' && currentPath === '/brands/tongariro') ||
+                (item.path === '/brands' && currentPath.startsWith('/brands/') && currentPath !== '/brands/tongariro');
+              if ('flagship' in item && item.flagship) {
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNav(item.path)}
+                    className={`inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-full border px-3 py-1 transition-colors ${
+                      isHome
+                        ? active ? 'border-white bg-white text-[#0B141E]' : 'border-[#DCE6D3]/50 text-white hover:bg-white/10'
+                        : active ? 'border-[#121518] bg-[#121518] text-white' : 'border-[#5E6B4F]/40 text-[#121518] hover:bg-[#121518]/5'
+                    }`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#A9BE95]" aria-hidden="true" />
+                    {item.label}
+                  </button>
+                );
+              }
               return (
                 <button
                   key={item.path}
@@ -110,7 +129,7 @@ export function Navbar() {
 
             <button
               onClick={() => setMobileOpen((o) => !o)}
-              className="md:hidden p-2 rounded-lg border border-current/15"
+              className="lg:hidden p-2 rounded-lg border border-current/15"
               aria-label="Toggle navigation menu"
             >
               {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -121,7 +140,7 @@ export function Navbar() {
         {/* Mobile Nav Drawer */}
         {mobileOpen && (
           <div
-            className={`md:hidden border-t px-4 py-4 space-y-2 ${
+            className={`lg:hidden border-t px-4 py-4 space-y-2 ${
               isHome ? 'border-white/10 bg-[#0B141E] text-white' : 'border-black/10 bg-[#F8F7F4] text-[#14181F]'
             }`}
           >
@@ -129,9 +148,15 @@ export function Navbar() {
               <button
                 key={item.path}
                 onClick={() => handleNav(item.path)}
-                className="block w-full text-left py-2.5 px-2 text-sm font-medium rounded-lg hover:bg-black/5"
+                className={`flex w-full items-center gap-2 text-left py-2.5 px-2 text-sm rounded-lg hover:bg-black/5 ${
+                  'flagship' in item && item.flagship ? 'font-semibold' : 'font-medium'
+                }`}
               >
+                {'flagship' in item && item.flagship && <span className="h-1.5 w-1.5 rounded-full bg-[#A9BE95]" aria-hidden="true" />}
                 {item.label}
+                {'flagship' in item && item.flagship && (
+                  <span className="ml-auto text-[10px] uppercase tracking-widest opacity-60">Sole UK distributor</span>
+                )}
               </button>
             ))}
             <button

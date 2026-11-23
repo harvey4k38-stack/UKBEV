@@ -4,6 +4,8 @@ import { ProductCard } from '../components/ProductCard';
 import { HydrationPlanner } from '../components/HydrationPlanner';
 import { SeoHead } from '../components/SeoHead';
 import { WaterFinder } from '../components/WaterFinder';
+import { DistributionStatement, FlagshipShowcase, SecondaryBrands, SoleDistributorBadge } from '../components/Flagship';
+import { isFlagship } from '../lib/flagship';
 import { useStore } from '../context/StoreContext';
 import { HeroGlobe3D } from '../three/lazy';
 import type { Brand } from '../types';
@@ -28,11 +30,11 @@ export function HomePage() {
     .filter((p): p is NonNullable<typeof p> => Boolean(p))
     .slice(0, 6);
 
-  // Lead with photographed packs, then the admin-chosen featured lines
-  const photographed = products.filter((p) => p.imageUrl);
+  // Wider range (Tongariro has its own showcase above): photographed packs, then admin-chosen featured lines
+  const photographed = products.filter((p) => p.imageUrl && !isFlagship(p));
   const displayProducts = [
     ...photographed,
-    ...(featuredProducts.length > 0 ? featuredProducts : products).filter((p) => !p.imageUrl),
+    ...(featuredProducts.length > 0 ? featuredProducts : products).filter((p) => !p.imageUrl && !isFlagship(p)),
   ].slice(0, 6);
 
   const handlePostcodeSubmit = async (e: React.FormEvent) => {
@@ -48,14 +50,14 @@ export function HomePage() {
   return (
     <div>
       <SeoHead
-        title="UK Beverages – Premium Bottled Water Delivery"
-        description="Discover exceptional bottled water from Evian, FIJI Water, Highland Spring, Icelandic Glacial, and Tongariro. Order cases online with reliable UK delivery and flexible subscriptions."
+        title="Tongariro Natural Spring Water UK – Sole UK Distributor | UK Beverages"
+        description="UK Beverages is the sole UK distributor of Tongariro Natural Spring Water from New Zealand. Order Tongariro, plus Evian, FIJI Water, Highland Spring and Icelandic Glacial, with UK delivery and subscriptions."
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'UK Beverages',
           description:
-            'UK retail distributor of premium international bottled water including Evian, FIJI Water, Highland Spring, Icelandic Glacial, and Tongariro.',
+            'Sole UK distributor of Tongariro Natural Spring Water (New Zealand), also supplying Evian, FIJI Water, Highland Spring and Icelandic Glacial.',
           url: window.location.origin,
           areaServed: 'GB',
         }}
@@ -69,7 +71,8 @@ export function HomePage() {
             brands={brands}
             selectedBrandId={selectedBrand?.id || null}
             onSelectBrand={(b) => setSelectedBrand(b)}
-            onExploreBrand={(slug) => navigate(`/brands/${slug}`)}
+            onExploreBrand={(slug) => navigate(slug === 'tongariro' ? '/tongariro' : `/brands/${slug}`)}
+            onShopBrand={() => navigate('/tongariro#collection')}
           />
         </div>
 
@@ -80,103 +83,50 @@ export function HomePage() {
               className="pointer-events-auto max-w-lg rounded-2xl border border-white/10 p-5 sm:p-8 text-white shadow-2xl backdrop-blur-sm"
               style={{ backgroundColor: 'rgba(8, 18, 28, 0.78)' }}
             >
-              <p className="text-xs font-medium tracking-widest uppercase text-[#7CC4D8]">
-                Premium water. Delivered across the UK.
+              <SoleDistributorBadge />
+              <p className="mt-4 text-xs font-medium tracking-[0.25em] uppercase text-[#C9D6C0]">
+                Tongariro Natural Spring Water · New Zealand
               </p>
-              <h1 className="mt-3 font-editorial text-[1.75rem] sm:text-5xl font-semibold leading-[1.08] tracking-tight text-white">
-                THE WORLD&apos;S FINEST WATER. DELIVERED TO YOUR DOOR.
+              <h1 className="mt-3 font-editorial text-[1.75rem] sm:text-5xl font-semibold leading-[1.05] tracking-tight text-white">
+                NEW ZEALAND&apos;S FINEST WATER. NOW IN THE UK.
               </h1>
               <p className="mt-3 sm:mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
-                Discover exceptional bottled water from remarkable natural sources around the world. Explore our collection and enjoy convenient delivery throughout the UK.
+                Discover Tongariro Natural Spring Water, exclusively distributed in the UK by UK Beverages. Explore its New Zealand
+                origins and our wider collection of premium international waters.
               </p>
 
               <div className="mt-6 grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-3">
                 <button
-                  onClick={() => navigate('/shop')}
+                  onClick={() => navigate('/tongariro')}
                   className="rounded-lg bg-white px-5 py-3.5 sm:py-3 text-sm sm:text-xs font-semibold tracking-wide text-[#08121C] hover:bg-slate-200 transition-colors whitespace-nowrap"
                 >
-                  SHOP ALL WATER
+                  EXPLORE TONGARIRO
                 </button>
                 <button
-                  onClick={() => navigate('/origins')}
+                  onClick={() => navigate('/shop')}
                   className="rounded-lg border border-white/25 px-5 py-3.5 sm:py-3 text-sm sm:text-xs font-semibold tracking-wide text-white hover:bg-white/10 transition-colors whitespace-nowrap"
                 >
-                  EXPLORE OUR BRANDS
+                  SHOP ALL WATER
                 </button>
               </div>
 
               <p className="hidden md:block mt-5 text-[11px] text-slate-400">
-                Drag the globe to rotate or select any source marker below to preview its origin.
+                Drag to spin the globe. Tap a marker to explore Tongariro and our other origins.
               </p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Flagship: Tongariro, its collection, our distribution role */}
+      <FlagshipShowcase />
+      <DistributionStatement tone="light" />
+
+      {/* Supporting brands */}
+      <SecondaryBrands />
+
       {/* Find-your-water quiz */}
       <WaterFinder />
-
-      {/* Section 2: Brand Origin Journeys */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-8 py-14 sm:py-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#0F5C6E]">
-              Five Natural Sources
-            </p>
-            <h2 className="mt-2 font-editorial text-3xl sm:text-4xl font-semibold text-[#14181F]">
-              Explore Each Water at Its Geological Source
-            </h2>
-          </div>
-          <button
-            onClick={() => navigate('/origins')}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F5C6E] hover:text-[#14181F] transition-colors whitespace-nowrap"
-          >
-            Compare All Five Origins <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {brands.map((brand, idx) => (
-            <button
-              key={brand.id}
-              onClick={() => navigate(`/brands/${brand.slug}`)}
-              className={`group text-left rounded-xl border border-black/8 bg-white overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                idx === 0 ? 'lg:col-span-2' : ''
-              }`}
-            >
-              <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-[#14202C]">
-                <img
-                  src={brand.heroImage}
-                  alt={`${brand.name} source in ${brand.region}`}
-                  referrerPolicy="no-referrer"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div className="absolute bottom-4 left-5 right-5 text-white">
-                  <div className="flex items-center gap-2 text-xs text-slate-200">
-                    <span>{brand.country}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{brand.sourceName}</span>
-                    <span aria-hidden="true">·</span>
-                    <span className="font-mono tabular-nums">pH {brand.mineralProfile.ph}</span>
-                  </div>
-                  <h3 className="mt-1 font-editorial text-2xl font-semibold text-white">
-                    {brand.name}
-                  </h3>
-                </div>
-              </div>
-              <div className="p-5 flex items-center justify-between gap-4">
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                  {brand.tagline}
-                </p>
-                <span className="text-xs font-semibold text-[#0F5C6E] whitespace-nowrap shrink-0">
-                  Explore the source →
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
 
       {/* Section 3: Featured Retail Selection */}
       <section className="border-y border-black/8 bg-[#EFECE6]/55 py-14 sm:py-20">
@@ -184,10 +134,10 @@ export function HomePage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[#0F5C6E]">
-                UK Consumer Retail
+                The wider collection
               </p>
               <h2 className="mt-2 font-editorial text-3xl sm:text-4xl font-semibold text-[#14181F]">
-                Featured Cases &amp; Multipacks
+                Popular cases from around the world
               </h2>
             </div>
             <button

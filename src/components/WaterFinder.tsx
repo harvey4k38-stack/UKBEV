@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ProductImage } from './ProductImage';
 import { ArrowLeft, Check, RotateCcw, Sparkles } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { isFlagship } from '../lib/flagship';
 import type { Brand, Product } from '../types';
 
 /**
@@ -44,8 +45,8 @@ const QUESTIONS = [
 ] as const;
 
 const TASTE_BRANDS: Record<Taste, string[]> = {
-  light: ['brand-icelandic-glacial', 'brand-tongariro', 'brand-highland-spring'],
-  smooth: ['brand-fiji', 'brand-tongariro'],
+  light: ['brand-icelandic-glacial', 'brand-highland-spring'],
+  smooth: ['brand-fiji', 'brand-evian'],
   mineral: ['brand-evian', 'brand-highland-spring'],
   alkaline: ['brand-icelandic-glacial', 'brand-fiji'],
 };
@@ -65,6 +66,8 @@ function scoreProduct(p: Product, occasion: Occasion, taste: Taste) {
   if (occasion === 'table' && p.bottleSizeMl >= 700 && p.bottleSizeMl <= 1000) score += 5;
   if (occasion === 'home' && p.bottleSizeMl >= 1000) score += 5;
   if (p.isBestSeller) score += 1;
+  // Flagship: Tongariro is always in contention (recommended on availability, not on unverified taste claims)
+  if (isFlagship(p)) score += 5;
   if (p.stock <= 0) score -= 100;
   return score;
 }
@@ -114,8 +117,8 @@ export function WaterFinder() {
           </p>
           <h2 className="font-editorial text-3xl sm:text-4xl font-semibold leading-tight">Find your water</h2>
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Five springs, fifteen formats. Answer three quick questions and we&apos;ll match you with the one
-            you&apos;ll love.
+            Tongariro from New Zealand, plus four of the world&apos;s best-known waters. Answer three quick questions and
+            we&apos;ll match you with the one you&apos;ll love.
           </p>
           {/* progress */}
           <div className="flex gap-1.5 pt-2" aria-hidden="true">
@@ -169,7 +172,11 @@ export function WaterFinder() {
                     {topBrand.name} · {topBrand.country}
                   </p>
                   <h3 className="text-xl font-semibold leading-snug">{top.name}</h3>
-                  <p className="text-sm text-slate-600">{TASTE_REASON[answers.taste!](topBrand)}</p>
+                  <p className="text-sm text-slate-600">
+                    {isFlagship(topBrand)
+                      ? 'Our flagship: natural spring water from New Zealand, available in the UK only through UK Beverages.'
+                      : TASTE_REASON[answers.taste!](topBrand)}
+                  </p>
                   <p className="text-xs text-slate-500">
                     {top.bottleSizeLabel} × {top.packQuantity} · £{(top.priceGbp / top.packQuantity).toFixed(2)} per bottle
                   </p>

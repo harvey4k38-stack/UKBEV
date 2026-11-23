@@ -3,6 +3,7 @@ import { Calendar, PauseCircle, RefreshCw, Shield } from 'lucide-react';
 import { HydrationPlanner } from '../components/HydrationPlanner';
 import { SeoHead } from '../components/SeoHead';
 import { useStore } from '../context/StoreContext';
+import { SoleDistributorBadge, TongariroCollection } from '../components/Flagship';
 
 export function SubscriptionsPage() {
   const { navigate, user } = useStore();
@@ -25,7 +26,7 @@ export function SubscriptionsPage() {
               NEVER RUN OUT OF YOUR FAVOURITE WATER.
             </h1>
             <p className="text-base text-slate-300 leading-relaxed max-w-xl">
-              Set a dependable UK delivery cadence for your household. Enjoy subscriber pricing across all five natural spring brands with full freedom to pause, swap products, or adjust dates in your account.
+              Set a dependable UK delivery cadence for your household, led by Tongariro from New Zealand. Enjoy subscriber pricing across every brand we stock, with full freedom to pause, swap products, or adjust dates in your account.
             </p>
             <div className="pt-2 flex flex-wrap gap-3">
               <a
@@ -65,6 +66,28 @@ export function SubscriptionsPage() {
               <p className="text-xs text-slate-400">Switch between still, sparkling, bottle sizes or brands between deliveries.</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Flagship subscription */}
+      <section className="bg-[#121518] text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 py-14 sm:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end mb-10">
+            <div className="lg:col-span-7 space-y-4">
+              <SoleDistributorBadge />
+              <h2 className="font-editorial text-3xl sm:text-5xl font-semibold leading-[1.05] uppercase">
+                Make Tongariro part of your everyday.
+              </h2>
+            </div>
+            <p className="lg:col-span-5 text-sm sm:text-base text-slate-300 leading-relaxed">
+              New Zealand natural spring water on a schedule that suits you. Pick a size, choose how often, and save on every
+              delivery. Pause, skip, swap or cancel from your account whenever you like.
+            </p>
+          </div>
+          <TongariroCollection />
+          <p className="mt-6 text-xs text-slate-400">
+            Prefer another water? Every brand we stock can be added to a subscription in the calculator below.
+          </p>
         </div>
       </section>
 

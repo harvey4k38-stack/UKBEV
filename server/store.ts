@@ -1029,8 +1029,12 @@ function createInitialState(): DatabaseState {
   };
 
   return {
-    brands,
-    products: [...products.map((p) => ({ ...p, imageUrl: PRODUCT_PHOTOS[p.id] ?? p.imageUrl })), ...MULTIPACK_PRODUCTS],
+    brands: brands.map((b) => (b.id === 'brand-tongariro' ? { ...b, ...TONGARIRO_BRAND_PATCH } : b)),
+    products: [...products, ...MULTIPACK_PRODUCTS].map((p) => ({
+      ...p,
+      imageUrl: PRODUCT_PHOTOS[p.id] ?? p.imageUrl,
+      ...(TONGARIRO_PRODUCT_COPY[p.id] ?? {}),
+    })),
     deliveryZones,
     discountCodes,
     users,
@@ -1064,7 +1068,7 @@ const MULTIPACK_SPECS: MultipackSpec[] = [
   { brandId: 'brand-fiji', brandShort: 'FIJI Natural Artesian Water', slugBrand: 'fiji', skuBrand: 'FIJ', priceGbp: 6.50, subscriptionDiscountPct: 12, packaging: 'rPET', bottleStyle: 'fiji_square', capColor: '#133C55', tintColor: '#E5F2F8', labelAccent: '#18759C', image: '/images/products/fiji-12x500ml.webp', description: 'FIJI’s iconic square 500ml bottle in a 12-pack. Soft, smooth artesian water, naturally rich in silica, from a protected aquifer on Viti Levu.' },
   { brandId: 'brand-highland-spring', brandShort: 'Highland Spring Still Water', slugBrand: 'highland-spring', skuBrand: 'HIG', priceGbp: 5.00, subscriptionDiscountPct: 10, packaging: 'rPET', bottleStyle: 'highland_pet', capColor: '#5B3A8C', tintColor: '#DFF1E8', labelAccent: '#5B3A8C', image: '/images/products/highland-spring-12x500ml.webp', description: 'Still Highland Spring in 500ml bottles, 12 to a pack. Drawn from protected land in the Ochil Hills of Perthshire, Scotland.' },
   { brandId: 'brand-icelandic-glacial', brandShort: 'Icelandic Glacial Still Water', slugBrand: 'icelandic-glacial', skuBrand: 'ICE', priceGbp: 6.00, subscriptionDiscountPct: 12, packaging: 'rPET', bottleStyle: 'icelandic_faceted', capColor: '#1F2328', tintColor: '#E1F2FA', labelAccent: '#2B6E8C', image: '/images/products/icelandic-glacial-12x500ml.webp', description: 'Naturally alkaline (pH 8.4) Icelandic Glacial in 500ml bottles, 12 to a pack. Filtered through porous lava rock at the Ölfus Spring.' },
-  { brandId: 'brand-tongariro', brandShort: 'Tongariro Natural Spring Water', slugBrand: 'tongariro', skuBrand: 'TON', priceGbp: 6.00, subscriptionDiscountPct: 10, packaging: 'PET', bottleStyle: 'tongariro_pure', capColor: '#1E4FA0', tintColor: '#E5EFF2', labelAccent: '#1E4FA0', image: '/images/products/tongariro-12x500ml.webp', description: 'Silica-rich volcanic spring water from 738m in New Zealand’s Tongariro region, in convenient 500ml bottles, 12 to a pack.' },
+  { brandId: 'brand-tongariro', brandShort: 'Tongariro Natural Spring Water', slugBrand: 'tongariro', skuBrand: 'TON', priceGbp: 6.00, subscriptionDiscountPct: 10, packaging: 'PET', bottleStyle: 'tongariro_pure', capColor: '#1E4FA0', tintColor: '#E5EFF2', labelAccent: '#1E4FA0', image: '/images/products/tongariro-12x500ml.webp', description: 'Tongariro Natural Spring Water from New Zealand in 500ml bottles, 12 to a pack. Distributed in the UK exclusively by UK Beverages.' },
 ];
 
 const TWELVE_PACKS: Product[] = MULTIPACK_SPECS.map((m) => ({
@@ -1092,6 +1096,46 @@ const TWELVE_PACKS: Product[] = MULTIPACK_SPECS.map((m) => ({
   imageUrl: m.image,
   active: true,
 }));
+
+/**
+ * Tongariro flagship copy. Only claims we can stand behind: New Zealand natural spring water,
+ * bottled at source, distributed in the UK solely by UK Beverages. Mineral/source figures stay
+ * hidden (factsVerified: false) until confirmed against the supplier's current label analysis.
+ */
+export const TONGARIRO_BRAND_PATCH: Partial<Brand> = {
+  name: 'Tongariro Natural Spring Water',
+  country: 'New Zealand',
+  region: 'New Zealand',
+  sourceName: 'Bottled at source in New Zealand',
+  elevation: '',
+  filtrationProcess: 'Natural spring water',
+  tagline: 'New Zealand natural spring water, distributed in the UK exclusively by UK Beverages.',
+  description:
+    'Tongariro Natural Spring Water is a New Zealand natural spring water, bottled at source and brought to the UK by UK Beverages as its sole UK distributor. The brand takes its name from the Tongariro region of the central North Island, a landscape of volcanic peaks, alpine tussock and clear mountain streams.',
+  geologicalStory:
+    'We publish source and mineral details only once they are confirmed against the supplier’s current label analysis. Ask us for the latest product specification.',
+  accuracyNote:
+    'UK Beverages is the sole UK distributor of Tongariro Natural Spring Water. We do not own the brand or bottle the water.',
+  factsVerified: false,
+};
+
+export const TONGARIRO_PRODUCT_COPY: Record<string, { subtitle: string; description: string }> = {
+  'prod-tongariro-500-12pk': {
+    subtitle: 'Pack of 12 · 500ml Still Bottles',
+    description:
+      'Tongariro Natural Spring Water from New Zealand in 500ml bottles, 12 to a pack: easy to keep in the fridge, the car or the gym bag. Distributed in the UK exclusively by UK Beverages.',
+  },
+  'prod-tongariro-750-still': {
+    subtitle: 'Case of 12 · 750ml Still Bottles',
+    description:
+      'Tongariro Natural Spring Water from New Zealand in 750ml bottles, 12 to a case. Distributed in the UK exclusively by UK Beverages.',
+  },
+  'prod-tongariro-1500-still': {
+    subtitle: 'Case of 8 · 1.5L Still Bottles',
+    description:
+      'Tongariro Natural Spring Water from New Zealand in family-size 1.5 litre bottles, 8 to a case. Distributed in the UK exclusively by UK Beverages.',
+  },
+};
 
 const specFor = (slugBrand: string) => MULTIPACK_SPECS.find((m) => m.slugBrand === slugBrand)!;
 
