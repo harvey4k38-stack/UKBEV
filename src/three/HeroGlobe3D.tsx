@@ -85,6 +85,8 @@ export function HeroGlobe3D({
   autoRotateRef.current = autoRotate;
   const onSelectRef = useRef(onSelectBrand);
   onSelectRef.current = onSelectBrand;
+  // Pull the camera back on tall/narrow (phone) viewports so the whole globe fits the width.
+  const distScaleRef = useRef(1);
 
   const flyTargetRef = useRef<THREE.Vector3 | null>(null);
 
@@ -102,7 +104,7 @@ export function HeroGlobe3D({
         2.35,
         new THREE.Vector3()
       );
-      flyTargetRef.current = surfacePos.clone().normalize().multiplyScalar(5.55);
+      flyTargetRef.current = surfacePos.clone().normalize().multiplyScalar(5.55 * distScaleRef.current);
     }
   }, [selectedBrandId]);
 
@@ -140,24 +142,33 @@ export function HeroGlobe3D({
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    const BASE_DIST = 6.25;
+    const distScaleFor = (w: number, h: number) => {
+      if (w >= 768) return 1; // desktop/tablet: keep the cinematic full-bleed framing
+      // Phones: fit the whole globe (radius 2.35) to ~84% of the shorter side
+      const halfV = THREE.MathUtils.degToRad(camera.fov / 2);
+      const halfH = Math.atan(Math.tan(halfV) * (w / h));
+      return Math.max(1, (2.35 / 0.84 / Math.sin(Math.min(halfV, halfH))) / BASE_DIST);
+    };
+    distScaleRef.current = distScaleFor(width, height);
     // Start oriented toward UK / France / Iceland Atlantic hemisphere
-    const initFocus = latLngToVector3(46, -8, 6.25, new THREE.Vector3());
+    const initFocus = latLngToVector3(46, -8, BASE_DIST * distScaleRef.current, new THREE.Vector3());
     camera.position.copy(initFocus);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false;
-    // Never hijack page scrolling: no wheel zoom, and no touch dragging on phones
-    // (the globe is a self-rotating backdrop there).
+    // Never hijack page scrolling: no wheel zoom.
     controls.enableZoom = false;
     if (window.matchMedia('(pointer: coarse)').matches) {
-      controls.enabled = false;
+      // Phones: swipe sideways to spin the globe; vertical swipes still scroll the page.
       renderer.domElement.style.touchAction = 'pan-y';
+      controls.rotateSpeed = 0.9;
     }
-    controls.minDistance = 3.85;
-    controls.maxDistance = 9.5;
+    controls.minDistance = 3.85 * distScaleRef.current;
+    controls.maxDistance = 9.5 * distScaleRef.current;
     controls.enableDamping = !isSoftwareGl && !prefersReduced;
     controls.dampingFactor = 0.06;
-    controls.rotateSpeed = 0.62;
+    if (!window.matchMedia('(pointer: coarse)').matches) controls.rotateSpeed = 0.62;
     controls.target.set(0, 0, 0);
 
     controls.addEventListener('start', () => {
@@ -504,9 +515,19 @@ export function HeroGlobe3D({
       const h = container.clientHeight || window.innerHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      const next = distScaleFor(w, h);
+      if (Math.abs(next - distScaleRef.current) > 0.01) {
+        const ratio = next / distScaleRef.current;
+        distScaleRef.current = next;
+        camera.position.multiplyScalar(ratio);
+        controls.minDistance = 3.85 * next;
+        controls.maxDistance = 9.5 * next;
+      }
       fx.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
+    const ro = new ResizeObserver(onResize);
+    ro.observe(container);
 
     if (!isSoftwareGl) {
       renderer.compile(scene, camera);
@@ -590,6 +611,7 @@ export function HeroGlobe3D({
       cancelAnimationFrame(timerRef.id);
       clearTimeout(timerRef.id);
       window.removeEventListener('resize', onResize);
+      ro.disconnect();
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
@@ -685,6 +707,52 @@ export function HeroGlobe3D({
           </div>
         </div>
       )}
+
+      {/* Phones: compact source card + swipeable source chips */}
+      {activeBrand && selectedBrandId && (
+        <div
+          className="md:hidden absolute left-3 right-3 top-3 z-20 flex items-center gap-3 rounded-xl border border-white/15 p-2.5 shadow-xl"
+          style={{ backgroundColor: 'rgba(10, 18, 28, 0.92)' }}
+        >
+          <img
+            src={activeBrand.heroImage}
+            alt=""
+            className="h-12 w-12 shrink-0 rounded-lg object-cover"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-white">{activeBrand.name}</p>
+            <p className="truncate text-[11px] text-slate-400">
+              {activeBrand.country} · pH {activeBrand.mineralProfile.ph}
+            </p>
+          </div>
+          <button
+            onClick={() => onExploreBrand(activeBrand.slug)}
+            className="shrink-0 rounded-lg bg-[#18759C] px-3 py-2 text-xs font-semibold text-white"
+          >
+            Explore
+          </button>
+        </div>
+      )}
+      <div className="md:hidden absolute bottom-3 left-0 right-0 z-20">
+        <div className="flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {brands.map((brand) => {
+            const active = selectedBrandId === brand.id;
+            return (
+              <button
+                key={brand.id}
+                onClick={() => onSelectBrand(active ? null : brand)}
+                className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
+                  active
+                    ? 'border-[#18759C] bg-[#18759C] text-white'
+                    : 'border-white/15 bg-[#0A121C]/85 text-slate-200'
+                }`}
+              >
+                {brand.name.replace(' Natural Spring Water', '').replace(' Water', '')}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Sleek Bottom Source Selector & Earth Mode Dock (<= 15% viewport, solid rgba surface) */}
       <div

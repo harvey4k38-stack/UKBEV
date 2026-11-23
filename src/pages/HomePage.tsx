@@ -62,16 +62,19 @@ export function HomePage() {
       />
 
       {/* Section 1: Full-Bleed Cinematic 3D Globe Hero */}
-      <section className="relative h-[88svh] md:h-[86vh] min-h-[560px] md:min-h-[620px] max-h-[860px] w-full bg-[#08121C] overflow-hidden">
-        <HeroGlobe3D
-          brands={brands}
-          selectedBrandId={selectedBrand?.id || null}
-          onSelectBrand={(b) => setSelectedBrand(b)}
-          onExploreBrand={(slug) => navigate(`/brands/${slug}`)}
-        />
+      {/* Phones: globe on top, copy underneath. Desktop: copy floats over a full-bleed globe. */}
+      <section className="relative w-full bg-[#08121C] overflow-hidden md:h-[86vh] md:min-h-[620px] md:max-h-[860px]">
+        <div className="relative h-[54svh] min-h-[340px] max-h-[520px] md:absolute md:inset-0 md:h-auto md:max-h-none">
+          <HeroGlobe3D
+            brands={brands}
+            selectedBrandId={selectedBrand?.id || null}
+            onSelectBrand={(b) => setSelectedBrand(b)}
+            onExploreBrand={(slug) => navigate(`/brands/${slug}`)}
+          />
+        </div>
 
         {/* Editorial Hero Overlay (left-aligned, never covering central globe markers) */}
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-end md:items-center pb-4 md:pb-0">
+        <div className="pointer-events-none relative md:absolute md:inset-0 z-10 flex items-end md:items-center pt-1 pb-6 md:py-0">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
             <div
               className="pointer-events-auto max-w-lg rounded-2xl border border-white/10 p-5 sm:p-8 text-white shadow-2xl backdrop-blur-sm"
@@ -80,10 +83,10 @@ export function HomePage() {
               <p className="text-xs font-medium tracking-widest uppercase text-[#7CC4D8]">
                 Premium water. Delivered across the UK.
               </p>
-              <h1 className="mt-3 font-editorial text-3xl sm:text-5xl font-semibold leading-[1.08] tracking-tight text-white">
+              <h1 className="mt-3 font-editorial text-[1.75rem] sm:text-5xl font-semibold leading-[1.08] tracking-tight text-white">
                 THE WORLD&apos;S FINEST WATER. DELIVERED TO YOUR DOOR.
               </h1>
-              <p className="mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
+              <p className="mt-3 sm:mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
                 Discover exceptional bottled water from remarkable natural sources around the world. Explore our collection and enjoy convenient delivery throughout the UK.
               </p>
 
