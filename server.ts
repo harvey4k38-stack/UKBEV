@@ -403,6 +403,21 @@ async function startServer() {
     }
   }
 
+  // Bag-in-box range discontinued (bottles only). Runs once; admins can re-enable later.
+  {
+    const state = db.getState();
+    const applied = (state.appliedMigrations ||= []);
+    if (!applied.includes('retire-bib-v1')) {
+      for (const p of state.products) if (p.packaging === 'Bag-in-Box') p.active = false;
+      state.marketing.featuredProductIds = state.marketing.featuredProductIds.filter(
+        (id) => state.products.find((p) => p.id === id)?.active
+      );
+      applied.push('retire-bib-v1');
+      db.save();
+      console.log('[catalogue] retired bag-in-box products');
+    }
+  }
+
   // One-off repricing to real UK case prices (£5–£8). Later admin edits are kept.
   {
     const state = db.getState();

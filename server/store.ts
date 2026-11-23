@@ -750,7 +750,7 @@ function createInitialState(): DatabaseState {
       capColor: '#8C6239',
       tintColor: '#DCE8EC',
       labelAccent: '#8C6239',
-      active: true,
+      active: false,
     },
   ];
 
